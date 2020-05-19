@@ -17,14 +17,28 @@ class TaskModel extends Model
     }
 
     public function update($task) {
+        $sqlTextTask = "SELECT text FROM tasks WHERE id = :id";
+        $stmtTextTask = $this->db->prepare($sqlTextTask);
+        $stmtTextTask->bindValue(":id", $task['id'], PDO::PARAM_STR);
+        $stmtTextTask->execute();
+        $oldText = $stmtTextTask->fetch(PDO::FETCH_ASSOC);
+
+        $data['is_changed'] = "0";
+        var_dump($oldText["text"]);
+
+        if (!empty($oldText)) {
+            if ($oldText["text"] != $task['text']) {
+                $data['is_changed'] = true;
+            }
+        }
+
+
         $data['text'] = htmlspecialchars($task['text']);
         $data['id'] = $task['id'];
         $data['is_active'] = "0";
-        $data['is_changed'] = true;
         if (array_key_exists('is_active', $task)) {
             $data['is_active'] = true;
         }
-        var_dump($data);
         $sql = "UPDATE tasks SET text=:text, is_active=:is_active, is_changed=:is_changed WHERE id=:id";
         $stmt= $this->db->prepare($sql);
         $stmt->execute($data);
